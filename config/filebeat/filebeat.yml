@@ -1,0 +1,22 @@
+filebeat.inputs:
+  - type: log
+    enabled: true
+    paths:
+      - /var/log/spring-boot-elk/*.log
+    fields:
+      service: "spring-boot-elk"
+
+  - type: log
+    enabled: true
+    paths:
+      - /var/log/spring-boot-graphql/*.log
+    fields:
+      service: "spring-boot-graphql"
+
+output.kafka:
+  hosts: ["localhost:9092"]
+  topic: 'logs-topic'
+
+
+#output.elasticsearch:
+#        hosts: ["localhost:9200"]

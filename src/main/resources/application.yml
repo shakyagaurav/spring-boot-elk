@@ -1,0 +1,42 @@
+#spring.application.name=spring-boot-elk
+#elasticsearch.host=localhost:
+#elasticsearch.port=9200
+#elasticsearch.scheme=https
+#elasticsearch.username=elastic
+#elasticsearch.password=password
+#elasticsearch.cluster-name=elasticsearch
+## Log4j2 configuration
+## Define log file location and pattern
+#logging.file.name=logs/application.log
+#logging.pattern.file=%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n
+## Set log level for root logger (console)
+#logging.level.root=info
+## Log only dynamically added logs to file
+#logging.level.com.elastic=info
+## Log Spring Boot logs to console
+#logging.level.org.springframework=info
+
+spring:
+  application:
+    name: spring-boot-elk
+  kafka:
+    bootstrap-servers: localhost:9092
+    consumer:
+      group-id: my-group
+      auto-offset-reset: earliest
+      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+    producer:
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-serializer: org.apache.kafka.common.serialization.StringSerializer
+
+elasticsearch:
+  rest:
+    uris: http://localhost:9200
+
+logging:
+  level:
+    root: DEBUG
+#    com.elk: DEBUG
+  file:
+    name: /var/log/spring-boot-elk/spring-boot-elk.log
+

@@ -1,0 +1,11 @@
+metricbeat.modules:
+  - module: system
+    period: 10s
+    metrics:
+      - type: cpu
+      - type: memory
+      - type: disk
+      - type: network
+
+output.elasticsearch:
+  hosts: ["localhost:9200"]

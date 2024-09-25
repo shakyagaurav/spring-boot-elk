@@ -1,0 +1,9 @@
+heartbeat.monitors:
+  - type: http
+    id: spring-boot-elk
+    name: spring-boot-elk
+    urls: ["http://localhost:8080/log"]
+    schedule: '@every 10s'
+
+output.elasticsearch:
+  hosts: ["http://elasticsearch:9200"]

@@ -1,0 +1,33 @@
+<configuration>
+    <appender name="LOGSTASH" class="net.logstash.logback.appender.LogstashTcpSocketAppender">
+        <destination>localhost:5044</destination>
+        <encoder class="net.logstash.logback.encoder.LogstashEncoder"/>
+    </appender>
+
+    <root level="INFO">
+        <appender-ref ref="LOGSTASH"/>
+    </root>
+</configuration>
+
+<!--<configuration>-->
+<!--    <appender name="LOGSTASH" class="net.logstash.logback.appender.LogstashTcpSocketAppender">-->
+<!--        <destination>localhost:5044</destination>-->
+<!--        <encoder class="net.logstash.logback.encoder.LogstashEncoder">-->
+<!--            <pattern>-->
+<!--                {-->
+<!--                "timestamp": "%d{yyyy-MM-dd'T'HH:mm:ss.SSSZ}",-->
+<!--                "level": "%level",-->
+<!--                "thread": "%thread",-->
+<!--                "logger": "%logger",-->
+<!--                "message": "%msg",-->
+<!--                "context": "%mdc"-->
+<!--                "service": "%service_name"-->
+<!--                }-->
+<!--            </pattern>-->
+<!--        </encoder>-->
+<!--    </appender>-->
+
+<!--    <root level="INFO">-->
+<!--        <appender-ref ref="LOGSTASH" />-->
+<!--    </root>-->
+<!--</configuration>-->

@@ -1,90 +1,44 @@
-version: "3.7"
+version: '3'
 services:
   elasticsearch:
     image: docker.elastic.co/elasticsearch/elasticsearch:${STACK_VERSION}
-    container_name: elasticsearch
-    restart: always
     environment:
       - discovery.type=single-node
-      - ES_JAVA_OPTS=-Xms2g -Xmx2g
-    healthcheck:
-      test: [ "CMD", "curl", "-f", "http://localhost:9200" ]
-      interval: 30s
-      timeout: 10s
-      retries: 5
+      - xpack.security.enabled=false
+      - bootstrap.memory_lock=true
     ports:
-      - ${ES_PORT}:9200
-  kibana:
-    depends_on:
-      elasticsearch:
-        condition: service_healthy
-    image: docker.elastic.co/kibana/kibana:${STACK_VERSION}
-    container_name: kibana
-    restart: always
-    environment:
-      - ELASTICSEARCH_HOSTS=localhost:9200
-    ports:
-      - ${KIBANA_PORT}:5601
+      - "${ES_PORT}:9200"
+    networks: ['stack']
+
   logstash:
-    depends_on:
-      elasticsearch:
-        condition: service_healthy
-      kibana:
-        condition: service_healthy
     image: docker.elastic.co/logstash/logstash:${STACK_VERSION}
-    container_name: logstash
     ports:
-      - 9600:9600
-#    links:
-#      - broker
+      - "5044:5044"
     volumes:
       - ./config/logstash/logstash.conf:/usr/share/logstash/pipeline/logstash.conf
-  metricbeat:
-    depends_on:
-      elasticsearch:
-        condition: service_healthy
-      kibana:
-        condition: service_healthy
-      logstash:
-        condition: service_healthy
-    image: docker.elastic.co/beats/metricbeat:${STACK_VERSION}
-    volumes:
-      - ./config/metricbeat/metricbeat.yml:/usr/share/metricbeat/metricbeat.yml
-    environment:
-      - ELASTIC_HOSTS=localhost:9200
-      - KIBANA_HOSTS=localhost:5601
-      - LOGSTASH_HOSTS=localhost:9600
-  filebeat:
-    depends_on:
-      elasticsearch:
-        condition: service_healthy
-      kibana:
-        condition: service_healthy
-      logstash:
-        condition: service_healthy
-    image: docker.elastic.co/beats/filebeat:${STACK_VERSION}
-    volumes:
-      - ./config/filebeat/filebeat.yml:/usr/share/filebeat/filebeat.yml
-      - /var/log/spring-boot-elk:/var/log/spring-boot-elk
-      - /var/log/spring-boot-graphql:/var/log/spring-boot-graphql
-    environment:
-      - ELASTIC_HOSTS=localhost:9200
-      - KIBANA_HOSTS=localhost:5601
-      - LOGSTASH_HOSTS=localhost:9600
-  spring-boot-elk:
-    image: spring-boot-elk:latest
-    container_name: spring-boot-elk
+    networks: ['stack']
+
+  kibana:
+    image: docker.elastic.co/kibana/kibana:${STACK_VERSION}
     ports:
-      - '8081:8081'
-    volumes:
-      - /var/log/spring-boot-elk
-    depends_on:
-#      - broker
-      - elasticsearch
-      - kibana
-      - logstash
+      - "${KIBANA_PORT}:5601"
     environment:
-      - KAFKA_BOOTSTRAP_SERVERS=localhost:9092
-      - ELASTIC_HOSTS=localhost:9200
-      - KIBANA_HOSTS=localhost:5601
-      - LOGSTASH_HOSTS=localhost:9600
+      ELASTICSEARCH_URL: http://elasticsearch:9200
+    networks: ['stack']
+
+  metricbeat:
+    image: docker.elastic.co/beats/metricbeat:${STACK_VERSION}
+    command: [ "-c", "/usr/share/metricbeat/metricbeat.yml", "-e" ]
+    volumes:
+      - "./config/metricbeat/metricbeat.yml:/usr/bin/metricbeat/metricbeat.yml:ro"
+    networks: ['stack']
+
+  heartbeat:
+    image: docker.elastic.co/beats/heartbeat:${STACK_VERSION}
+    command: [ "-c", "/usr/share/heartbeat/heartbeat.yml", "-e", "-strict.perms=false" ]
+    volumes:
+      - "./config/heartbeat/heartbeat.yml:/usr/share/heartbeat/heartbeat.yml:ro"
+    networks: ['stack']
+
+networks:
+  stack: {}

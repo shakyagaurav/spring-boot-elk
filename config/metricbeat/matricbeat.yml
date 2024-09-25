@@ -1,11 +1,111 @@
-metricbeat.modules:
-  - module: system
-    period: 10s
-    metrics:
-      - type: cpu
-      - type: memory
-      - type: disk
-      - type: network
+metricbeat.config.modules:
 
+  # Glob pattern for configuration reloading
+  path: ${path.config}/conf.d/*.yml
+
+  # Period on which files under path should be checked for changes
+  reload.period: 10s
+
+  # Set to true to enable config reloading
+  reload.enabled: false
+
+# Maximum amount of time to randomly delay the start of a metricset. Use 0 to
+# disable startup delay.
+metricbeat.max_start_delay: 10s
+
+#==========================  Modules configuration ============================
+metricbeat.modules:
+
+  #------------------------------- System Module -------------------------------
+  - module: system
+    metricsets:
+      - cpu             # CPU usage
+      - load            # CPU load averages
+      - memory          # Memory usage
+      - network         # Network IO
+      - process         # Per process metrics
+      - process_summary # Process summary
+      - uptime          # System Uptime
+      - socket_summary  # Socket summary
+    enabled: true
+    period: 10s
+    processes: ['.*']
+
+    # Configure the metric types that are included by these metricsets.
+    cpu.metrics:  ["percentages"]  # The other available options are normalized_percentages and ticks.
+    core.metrics: ["percentages"]  # The other available option is ticks.
+
+  #------------------------------- Docker Module -------------------------------
+  - module: docker
+    metricsets:
+      - "container"
+      - "cpu"
+      - "diskio"
+      - "event"
+      - "healthcheck"
+      - "info"
+      - "image"
+      - "memory"
+      - "network"
+    hosts: ["unix:///var/run/docker.sock"]
+    period: 10s
+    enabled: true
+
+  #---------------------------- Elasticsearch Module ---------------------------
+  - module: elasticsearch
+    metricsets:
+      - node
+      - node_stats
+      - index
+      - index_recovery
+      - index_summary
+      - shard
+      - ml_job
+    period: 10s
+    hosts: ["http://localhost:9200", "http://elasticsearch:9200"]
+
+  #-------------------------------- HTTP Module --------------------------------
+  - module: http
+    #metricsets:
+    #  - json
+    period: 10s
+    hosts: ["localhost:80"]
+    namespace: "json_namespace"
+    path: "/"
+
+  #-------------------------------- Kafka Module -------------------------------
+  - module: kafka
+    metricsets: ["consumergroup", "partition"]
+    period: 10s
+    hosts: ["localhost:9092"]
+    enabled: true
+
+  #------------------------------- Kibana Module -------------------------------
+  - module: kibana
+    metricsets: ["status"]
+    period: 10s
+    hosts: ["localhost:5601", "http://kibana:5601"]
+    basepath: ""
+    enabled: true
+
+  #------------------------------ Logstash Module ------------------------------
+  - module: logstash
+    metricsets: ["node", "node_stats"]
+    enabled: true
+    period: 10s
+    hosts: ["localhost:9600"]
+
+  #------------------------------ ZooKeeper Module -----------------------------
+  - module: zookeeper
+    enabled: true
+    metricsets: ["mntr", "server"]
+    period: 10s
+    hosts: ["localhost:2181"]
+
+#================================ Outputs ======================================
+
+# Configure what output to use when sending the data collected by the beat.
+
+#-------------------------- Elasticsearch output -------------------------------
 output.elasticsearch:
-  hosts: ["localhost:9200"]
+  hosts: ["http://elasticsearch:9200"]
